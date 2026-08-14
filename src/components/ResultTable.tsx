@@ -1,4 +1,4 @@
-import { type Indicator } from '../data/lms-reference';
+import { type Indicator } from '../data/kemenkes-standards';
 import { getNutritionalStatus } from '../utils/zscore';
 
 interface ResultRow {

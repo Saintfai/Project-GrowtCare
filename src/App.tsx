@@ -3,8 +3,8 @@ import { PatientForm } from './components/PatientForm';
 import { MeasurementForm, type MeasurementData } from './components/MeasurementForm';
 import { GrowthChart } from './components/GrowthChart';
 import { ResultTable } from './components/ResultTable';
-import { type Gender, type Indicator } from './data/lms-reference';
-import { calculateAgeInMonths, getInterpolatedLMS, calculateZScore } from './utils/zscore';
+import { type Gender, type Indicator } from './data/kemenkes-standards';
+import { calculateAgeInMonths, getSDBands, calculateZScore } from './utils/zscore';
 
 function App() {
   const [gender, setGender] = useState<Gender>('L');
@@ -48,9 +48,9 @@ function App() {
 
       let zScore = null;
       if (y > 0) {
-        const lms = getInterpolatedLMS(indicator, gender, x);
-        if (lms) {
-          zScore = calculateZScore(y, lms);
+        const bands = getSDBands(indicator, gender, x);
+        if (bands) {
+          zScore = calculateZScore(y, bands);
         }
       }
 

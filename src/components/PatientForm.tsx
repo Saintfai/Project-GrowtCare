@@ -1,4 +1,4 @@
-import { type Gender } from '../data/lms-reference';
+import { type Gender } from '../data/kemenkes-standards';
 
 interface PatientFormProps {
   gender: Gender;

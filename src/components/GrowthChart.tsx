@@ -9,8 +9,8 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { type Indicator, type Gender, lmsData } from '../data/lms-reference';
-import { getInterpolatedLMS, calculateSDValue } from '../utils/zscore';
+import { type Indicator, type Gender } from '../data/kemenkes-standards';
+import { getTableData } from '../utils/zscore';
 
 interface GrowthChartProps {
   indicator: Indicator;
@@ -20,29 +20,17 @@ interface GrowthChartProps {
 
 export const GrowthChart: React.FC<GrowthChartProps> = ({ indicator, gender, userData }) => {
   const chartData = useMemo(() => {
-    const data = [];
-    // Generate points for the curves based on the indicator's domain
-    const table = lmsData[indicator][gender];
-    const minX = table[0].x;
-    const maxX = table[table.length - 1].x;
-    const step = indicator === 'BBTB' ? 5 : 1; // 5cm step for BBTB, 1 month step for others
-
-    for (let x = minX; x <= maxX; x += step) {
-      const lms = getInterpolatedLMS(indicator, gender, x);
-      if (lms) {
-        data.push({
-          x,
-          sd3Neg: calculateSDValue(-3, lms),
-          sd2Neg: calculateSDValue(-2, lms),
-          sd1Neg: calculateSDValue(-1, lms),
-          median: calculateSDValue(0, lms),
-          sd1Pos: calculateSDValue(1, lms),
-          sd2Pos: calculateSDValue(2, lms),
-          sd3Pos: calculateSDValue(3, lms),
-        });
-      }
-    }
-    return data;
+    const table = getTableData(indicator, gender);
+    return table.map(row => ({
+      x: row.x,
+      sd3Neg: row.sd3neg,
+      sd2Neg: row.sd2neg,
+      sd1Neg: row.sd1neg,
+      median: row.median,
+      sd1Pos: row.sd1pos,
+      sd2Pos: row.sd2pos,
+      sd3Pos: row.sd3pos,
+    }));
   }, [indicator, gender]);
 
   const yAxisLabel = indicator === 'TBU' ? 'Tinggi (cm)' : indicator === 'IMTU' ? 'IMT (kg/m²)' : 'Berat (kg)';
