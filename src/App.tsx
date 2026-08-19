@@ -11,7 +11,7 @@ function App() {
   const [dob, setDob] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [indicator, setIndicator] = useState<Indicator>('BBU');
-  
+
   const [measurements, setMeasurements] = useState<MeasurementData[]>([
     { id: '1', date: new Date().toISOString().split('T')[0], weight: '', height: '' }
   ]);
@@ -84,7 +84,7 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
-        
+
         {/* Header */}
         <header className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
@@ -92,7 +92,7 @@ function App() {
             <p className="text-sm text-gray-500 mt-1">Simulasi Grafik Pertumbuhan Anak Berbasis PMK No. 2 Tahun 2020</p>
           </div>
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={() => {
                 setDob('');
                 setName('');
@@ -106,16 +106,16 @@ function App() {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Left Panel: Inputs */}
           <div className="lg:col-span-1 space-y-6">
-            <PatientForm 
+            <PatientForm
               gender={gender} setGender={setGender}
               dob={dob} setDob={setDob}
               name={name} setName={setName}
             />
-            <MeasurementForm 
-              measurements={measurements} 
+            <MeasurementForm
+              measurements={measurements}
               setMeasurements={setMeasurements}
             />
           </div>
@@ -133,11 +133,10 @@ function App() {
                   <button
                     key={ind.id}
                     onClick={() => setIndicator(ind.id as Indicator)}
-                    className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
-                      indicator === ind.id 
-                        ? 'bg-blue-600 text-white' 
+                    className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${indicator === ind.id
+                        ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     {ind.label}
                   </button>
@@ -149,10 +148,10 @@ function App() {
                   <p className="text-gray-500 text-sm">Silakan isi Tanggal Lahir anak terlebih dahulu.</p>
                 </div>
               ) : (
-                <GrowthChart 
-                  indicator={indicator} 
-                  gender={gender} 
-                  userData={chartData} 
+                <GrowthChart
+                  indicator={indicator}
+                  gender={gender}
+                  userData={chartData}
                 />
               )}
             </div>
@@ -161,7 +160,7 @@ function App() {
               <ResultTable indicator={indicator} results={tableResults} />
             )}
           </div>
-          
+
         </div>
       </div>
     </div>

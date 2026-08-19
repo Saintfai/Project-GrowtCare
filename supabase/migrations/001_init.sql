@@ -56,24 +56,14 @@ create table public.login_attempts (
 );
 
 -- ============================================================
--- 5. TABEL LOCATIONS (opsional, untuk multi-posyandu)
--- ============================================================
-create table public.locations (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  code text unique not null,
-  created_at timestamptz not null default now()
-);
-
--- ============================================================
--- 6. TABEL PATIENTS
+-- 5. TABEL PATIENTS
 -- ============================================================
 
 -- Sequence untuk auto-generate nomor urut No. RM
 create sequence if not exists public.patient_seq_default;
 
--- Function untuk generate No. RM: [kode_lokasi]-[tahun]-[urutan]
-create or replace function public.generate_medical_record_no(p_location_code text default 'GRC')
+-- Function untuk generate No. RM: RS-[tahun]-[urutan]
+create or replace function public.generate_medical_record_no()
 returns text
 language plpgsql
 as $$
@@ -81,7 +71,7 @@ declare
   next_val bigint;
 begin
   select nextval('public.patient_seq_default') into next_val;
-  return p_location_code || '-' || extract(year from now())::text || '-' || lpad(next_val::text, 5, '0');
+  return 'RS-' || extract(year from now())::text || '-' || lpad(next_val::text, 5, '0');
 end;
 $$;
 
@@ -94,7 +84,6 @@ create table public.patients (
   identity_number text,
   parent_name text,
   parent_phone text,
-  location_id uuid references public.locations(id),
   is_active boolean not null default true,
   created_by uuid references public.users(id),
   created_at timestamptz not null default now(),
