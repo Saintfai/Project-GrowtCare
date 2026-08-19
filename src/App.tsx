@@ -1,4 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { supabase } from './lib/supabase';
+import { Login } from './components/Login';
+import { PatientList } from './components/PatientList';
+import { getMeasurements, type Patient } from './lib/api';
+
 import { PatientForm } from './components/PatientForm';
 import { MeasurementForm, type MeasurementData } from './components/MeasurementForm';
 import { GrowthChart } from './components/GrowthChart';
@@ -7,6 +12,9 @@ import { type Gender, type Indicator } from './data/kemenkes-standards';
 import { calculateAgeInMonths, getSDBands, calculateZScore } from './utils/zscore';
 
 function App() {
+  const [user, setUser] = useState<any>(null); // State custom user
+
+  // Growth Simulator States
   const [gender, setGender] = useState<Gender>('L');
   const [dob, setDob] = useState<string>('');
   const [name, setName] = useState<string>('');
@@ -15,6 +23,45 @@ function App() {
   const [measurements, setMeasurements] = useState<MeasurementData[]>([
     { id: '1', date: new Date().toISOString().split('T')[0], weight: '', height: '' }
   ]);
+
+  // Load custom user from localStorage on mount
+  useEffect(() => {
+    const savedUser = localStorage.getItem('growtcare_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLoginSuccess = (userData: any) => {
+    setUser(userData);
+    localStorage.setItem('growtcare_user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('growtcare_user');
+  };
+
+  // Handle Select Patient from Database
+  const handleSelectPatient = async (patient: Patient) => {
+    setName(patient.name);
+    setGender(patient.gender);
+    setDob(patient.date_of_birth);
+    
+    // Fetch measurements for this patient
+    const dbMeasurements = await getMeasurements(patient.id);
+    
+    if (dbMeasurements.length > 0) {
+      setMeasurements(dbMeasurements.map(m => ({
+        id: m.id,
+        date: m.measured_at,
+        weight: m.weight_kg ? m.weight_kg.toString() : '',
+        height: m.height_cm ? m.height_cm.toString() : ''
+      })));
+    } else {
+      setMeasurements([{ id: Date.now().toString(), date: new Date().toISOString().split('T')[0], weight: '', height: '' }]);
+    }
+  };
 
   // Process data for charts and tables
   const processedResults = useMemo(() => {
@@ -81,6 +128,12 @@ function App() {
       zScore: r.zScore
     }));
 
+  // Render Login if not authenticated
+  if (!user) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Main UI
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
@@ -89,7 +142,9 @@ function App() {
         <header className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Growth Chart Simulator</h1>
-            <p className="text-sm text-gray-500 mt-1">Simulasi Grafik Pertumbuhan Anak Berbasis PMK No. 2 Tahun 2020</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Login sebagai: {user.full_name} ({user.role})
+            </p>
           </div>
           <div className="flex gap-2">
             <button
@@ -102,6 +157,12 @@ function App() {
             >
               Reset Data
             </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-lg transition-colors"
+            >
+              Logout
+            </button>
           </div>
         </header>
 
@@ -109,6 +170,8 @@ function App() {
 
           {/* Left Panel: Inputs */}
           <div className="lg:col-span-1 space-y-6">
+            <PatientList onSelectPatient={handleSelectPatient} />
+            
             <PatientForm
               gender={gender} setGender={setGender}
               dob={dob} setDob={setDob}
